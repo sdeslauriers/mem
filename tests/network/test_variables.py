@@ -62,3 +62,30 @@ class GaussianState(unittest.TestCase):
             projected_state.mean, np.matrix([[0], [2]]))
         np.testing.assert_array_almost_equal(
             projected_state.variance, np.matrix([[2, 0], [0, 2]]))
+
+
+class Cluster(unittest.TestCase):
+
+    def test_init(self):
+
+        # Test normal behavior.
+        off_mean = np.matrix(np.zeros((2, 1)))
+        on_mean = np.matrix(np.ones((2, 1)))
+        variance = np.matrix(np.identity(2))
+
+        on_state = mem.network.variables.GaussianState(on_mean, variance)
+        off_state = mem.network.variables.GaussianState(off_mean, variance)
+
+        cluster = mem.network.variables.Cluster([0, 1], [off_state, on_state])
+
+        self.assertEqual(cluster.nb_states, 2)
+        self.assertEqual(cluster.nb_sources, 2)
+        self.assertEqual(cluster.states[0], off_state)
+        self.assertEqual(cluster.states[1], on_state)
+
+        # The number of sources of the cluster should match the number of
+        # sources of the states.
+        self.assertRaises(
+            ValueError,
+            mem.network.variables.Cluster,
+            [0], [off_state, on_state])

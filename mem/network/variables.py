@@ -27,6 +27,10 @@ class GaussianState(object):
         return self._mean
 
     @property
+    def nb_sources(self):
+        return len(self._mean)
+
+    @property
     def variance(self):
         return self._variance
 
@@ -43,3 +47,37 @@ class GaussianState(object):
         return GaussianState(
             projector @ self.mean,
             projector @ self.variance @ projector.T)
+
+
+class Cluster(object):
+    def __init__(self, source_numbers, states):
+        """A variable that represent a cluster of sources"""
+
+        # The number of source numbers must match the number of source in the
+        # states.
+        for i, state in enumerate(states):
+            if state.nb_sources != len(source_numbers):
+                raise ValueError(
+                    'The number of sources of the state {} does not match '
+                    'the number of sources numbers ({} != {}).'
+                    .format(i, state.nb_sources, len(source_numbers)))
+
+        self._source_numbers = source_numbers
+        self._states = states
+
+    @property
+    def nb_sources(self):
+        return len(self._source_numbers)
+
+    @property
+    def nb_states(self):
+        return len(self._states)
+
+    @property
+    def states(self):
+        return self._states
+
+
+class Connection(object):
+    """A variable that represents a connection between clusters"""
+    pass
