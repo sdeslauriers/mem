@@ -4,6 +4,8 @@ from functools import reduce
 import itertools
 import operator
 
+import numpy as np
+
 
 class BaseTable(object):
     def __init__(self, variables):
@@ -19,7 +21,7 @@ class BaseTable(object):
     def __str__(self):
         """String representation of the conditional probability table"""
 
-        out = ''
+        out = '\n'
         states = [range(v.nb_states) for v in self.variables]
         for state, p in zip(itertools.product(*states), self.probabilities):
             out += ' '.join((str(s) for s in state))
@@ -39,7 +41,7 @@ class BaseTable(object):
 
     @property
     def variables(self):
-        return self._variables
+        return list(self._variables)
 
     def validate_probabilities(self, probabilities):
 
@@ -90,3 +92,31 @@ class Evidence(BaseTable):
     def update(self, probabilities):
         self.validate_probabilities(probabilities)
         self._probabilities = probabilities
+
+
+class Marginal(ConditionalProbability):
+    def __init__(self, table, variable):
+        """Marginal conditional probability table"""
+
+        # The variable to marginalize must be in the domain of the table.
+        if variable not in table.variables:
+            raise ValueError(
+                'The variable {} is not in the domain of table {}.'
+                .format(variable, table))
+
+        # Keep the position of the marginalized variable and the table to be
+        # able to update the table.
+        variables = table.variables
+        self._index = variables.index(variable)
+        self._table = table
+
+        variables.remove(variable)
+        super().__init__(variables, self._compute_probabilities())
+
+    def _compute_probabilities(self):
+        probabilities = np.array(self._table.probabilities)
+        probabilities.shape = tuple(v.nb_states for v in self._table.variables)
+        return np.sum(probabilities, self._index).ravel()
+
+    def update(self):
+        self.probabilities = self._compute_probabilities()
