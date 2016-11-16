@@ -152,3 +152,32 @@ class Marginal(unittest.TestCase):
         np.testing.assert_array_almost_equal(
             marginal_left.probabilities,
             marginal_right.probabilities)
+
+
+class Product(unittest.TestCase):
+
+    def test_init(self):
+
+        # Test normal behavior.
+        off_mean = np.matrix(np.zeros((2, 1)))
+        on_mean = np.matrix(np.ones((2, 1)))
+        variance = np.matrix(np.identity(2))
+        on_state = mem.network.variables.GaussianState(on_mean, variance)
+        off_state = mem.network.variables.GaussianState(off_mean, variance)
+        cluster_a = mem.network.variables.Cluster(
+            [0, 1], [off_state, on_state])
+        cluster_b = mem.network.variables.Cluster(
+            [0, 1], [off_state, on_state])
+        cluster_c = mem.network.variables.Cluster(
+            [0, 1], [off_state, on_state])
+        table_1 = mem.network.tables.ConditionalProbability(
+            [cluster_a, cluster_b], [0.1, 0.2, 0.3, 0.4])
+        table_2 = mem.network.tables.ConditionalProbability(
+            [cluster_b, cluster_c], [0.4, 0.3, 0.2, 0.1])
+
+        variables = [cluster_a, cluster_b, cluster_c]
+        result = mem.network.tables.Product(variables, table_1, table_2)
+
+        np.testing.assert_array_almost_equal(
+            result.probabilities,
+            [0.04, 0.03, 0.04, 0.02, 0.12, 0.09, 0.08, 0.04])

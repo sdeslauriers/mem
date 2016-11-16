@@ -120,3 +120,59 @@ class Marginal(ConditionalProbability):
 
     def update(self):
         self.probabilities = self._compute_probabilities()
+
+
+class Product(ConditionalProbability):
+    def __init__(self, world, left, right):
+        """Product of two conditional probability tables"""
+
+        # Keep the operands.
+        self._left = left
+        self._right = right
+
+        # Make sure the variables of the resulting table are in the same order
+        # as in the world.
+        def keep(v):
+            return v in left.variables or v in right.variables
+        variables = [v for v in world if keep(v)]
+
+        # Compute the source indices for the left and right tables.
+        self._left_indices = _compute_subset_indices(
+            variables, left.variables)
+        self._right_indices = _compute_subset_indices(
+            variables, right.variables)
+
+        nb_states = reduce(operator.mul, [v.nb_states for v in variables])
+        super().__init__(variables, self._compute_probabilities(nb_states))
+
+    def _compute_probabilities(self, nb_states):
+
+        probabilities = np.zeros((nb_states,))
+        left = np.array(self._left.probabilities)
+        right = np.array(self._right.probabilities)
+        return left[self._left_indices] * right[self._right_indices]
+
+    def update(self):
+        self.probabilities = self._compute_probabilities(self.nb_states)
+
+
+def _compute_subset_indices(variables, subset):
+
+    nb_variables = len(variables)
+    mask = np.array([v in subset for v in variables])
+    powers = np.zeros((nb_variables,), dtype=int)
+    states = [v.nb_states for v in subset]
+    p = 0
+    n = 0
+    for i in reversed(range(nb_variables)):
+        if mask[i]:
+            p = states[n] ** n
+            n += 1
+            powers[i] = p
+
+    indices = []
+    states = [range(v.nb_states) for v in variables]
+    for state in itertools.product(*states):
+        indices.append(np.dot(state, powers))
+
+    return indices
