@@ -89,3 +89,11 @@ class Cluster(unittest.TestCase):
             ValueError,
             mem.network.variables.Cluster,
             [0], [off_state, on_state])
+
+
+class ZeroOneCluster(unittest.TestCase):
+
+    def test_init(self):
+        cluster = mem.network.variables.ZeroOneCluster([0, 1])
+        self.assertEqual(cluster.nb_states, 2)
+        self.assertEqual(cluster.nb_sources, 2)

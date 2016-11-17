@@ -12,12 +12,7 @@ class Table(unittest.TestCase):
     def test_init(self):
 
         # Test normal behavior.
-        off_mean = np.matrix(np.zeros((2, 1)))
-        on_mean = np.matrix(np.ones((2, 1)))
-        variance = np.matrix(np.identity(2))
-        on_state = mem.network.variables.GaussianState(on_mean, variance)
-        off_state = mem.network.variables.GaussianState(off_mean, variance)
-        cluster = mem.network.variables.Cluster([0, 1], [off_state, on_state])
+        cluster = mem.network.variables.ZeroOneCluster([0, 1])
         table = mem.network.tables.ConditionalProbability(cluster, [0.5, 0.5])
 
         self.assertEqual(table.variables[0], cluster)
@@ -25,8 +20,7 @@ class Table(unittest.TestCase):
         np.testing.assert_array_equal(table.probabilities, [0.5, 0.5])
 
         # A list of variables is also acceptable.
-        other_cluster = mem.network.variables.Cluster(
-            [0, 1], [off_state, on_state])
+        other_cluster = mem.network.variables.ZeroOneCluster([0, 1])
         table = mem.network.tables.ConditionalProbability(
             [cluster, other_cluster], [0.5, 0.2, 0.1, 0.2])
 
@@ -43,12 +37,7 @@ class Evidence(unittest.TestCase):
     def test_init(self):
 
         # Test normal behavior.
-        off_mean = np.matrix(np.zeros((2, 1)))
-        on_mean = np.matrix(np.ones((2, 1)))
-        variance = np.matrix(np.identity(2))
-        on_state = mem.network.variables.GaussianState(on_mean, variance)
-        off_state = mem.network.variables.GaussianState(off_mean, variance)
-        cluster = mem.network.variables.Cluster([0, 1], [off_state, on_state])
+        cluster = mem.network.variables.ZeroOneCluster([0, 1])
         table = mem.network.tables.Evidence(cluster, [0.5, 0.5])
 
         self.assertEqual(table.variables[0], cluster)
@@ -62,8 +51,7 @@ class Evidence(unittest.TestCase):
             cluster, [0.5, 0.3, 0.1, 0.1])
 
         # Evidence tables can only depend on a single variable.
-        other_cluster = mem.network.variables.Cluster(
-            [0, 1], [off_state, on_state])
+        other_cluster = mem.network.variables.ZeroOneCluster([0, 1])
         self.assertRaises(
             ValueError,
             mem.network.tables.Evidence,
@@ -71,12 +59,7 @@ class Evidence(unittest.TestCase):
 
     def test_update(self):
 
-        off_mean = np.matrix(np.zeros((2, 1)))
-        on_mean = np.matrix(np.ones((2, 1)))
-        variance = np.matrix(np.identity(2))
-        on_state = mem.network.variables.GaussianState(on_mean, variance)
-        off_state = mem.network.variables.GaussianState(off_mean, variance)
-        cluster = mem.network.variables.Cluster([0, 1], [off_state, on_state])
+        cluster = mem.network.variables.ZeroOneCluster([0, 1])
         table = mem.network.tables.Evidence(cluster, [0.5, 0.5])
 
         # The probabilities of an evidence table can be updated.
@@ -96,14 +79,8 @@ class Marginal(unittest.TestCase):
     def test_init(self):
 
         # Test normal behavior.
-        off_mean = np.matrix(np.zeros((2, 1)))
-        on_mean = np.matrix(np.ones((2, 1)))
-        variance = np.matrix(np.identity(2))
-        on_state = mem.network.variables.GaussianState(on_mean, variance)
-        off_state = mem.network.variables.GaussianState(off_mean, variance)
-        cluster = mem.network.variables.Cluster([0, 1], [off_state, on_state])
-        other_cluster = mem.network.variables.Cluster(
-            [0, 1], [off_state, on_state])
+        cluster = mem.network.variables.ZeroOneCluster([0, 1])
+        other_cluster = mem.network.variables.ZeroOneCluster([0, 1])
         table = mem.network.tables.ConditionalProbability(
             [cluster, other_cluster], [0.5, 0.2, 0.1, 0.2])
 
@@ -117,9 +94,7 @@ class Marginal(unittest.TestCase):
             other_cluster_marginal.probabilities, [0.7, 0.3])
 
         # The variable to marginalize must be part of the tables domain.
-        missing_cluster = mem.network.variables.Cluster(
-            [2, 3], [off_state, on_state])
-
+        missing_cluster = mem.network.variables.ZeroOneCluster([0, 1])
         self.assertRaises(
             ValueError,
             mem.network.tables.Marginal,
@@ -159,17 +134,9 @@ class Product(unittest.TestCase):
     def test_init(self):
 
         # Test normal behavior.
-        off_mean = np.matrix(np.zeros((2, 1)))
-        on_mean = np.matrix(np.ones((2, 1)))
-        variance = np.matrix(np.identity(2))
-        on_state = mem.network.variables.GaussianState(on_mean, variance)
-        off_state = mem.network.variables.GaussianState(off_mean, variance)
-        cluster_a = mem.network.variables.Cluster(
-            [0, 1], [off_state, on_state])
-        cluster_b = mem.network.variables.Cluster(
-            [0, 1], [off_state, on_state])
-        cluster_c = mem.network.variables.Cluster(
-            [0, 1], [off_state, on_state])
+        cluster_a = mem.network.variables.ZeroOneCluster([0, 1])
+        cluster_b = mem.network.variables.ZeroOneCluster([0, 1])
+        cluster_c = mem.network.variables.ZeroOneCluster([0, 1])
         table_1 = mem.network.tables.ConditionalProbability(
             [cluster_a, cluster_b], [0.1, 0.2, 0.3, 0.4])
         table_2 = mem.network.tables.ConditionalProbability(

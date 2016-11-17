@@ -81,3 +81,15 @@ class Cluster(object):
 class Connection(object):
     """A variable that represents a connection between clusters"""
     pass
+
+
+class ZeroOneCluster(Cluster):
+    def __init__(self, source_numbers):
+        """A cluster with sources intensities in [0, 1]"""
+        nb_sources = len(source_numbers)
+        variance = np.matrix(np.zeros((nb_sources, nb_sources)))
+        zero_state = GaussianState(
+            np.matrix(np.zeros((nb_sources, 1))), variance)
+        one_state = GaussianState(
+            np.matrix(np.ones((nb_sources, 1))), variance)
+        super().__init__(source_numbers, [zero_state, one_state])
