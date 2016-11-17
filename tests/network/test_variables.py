@@ -97,3 +97,18 @@ class ZeroOneCluster(unittest.TestCase):
         cluster = mem.network.variables.ZeroOneCluster([0, 1])
         self.assertEqual(cluster.nb_states, 2)
         self.assertEqual(cluster.nb_sources, 2)
+
+    def test_partition(self):
+        cluster = mem.network.variables.ZeroOneCluster([0, 1])
+
+        values, jacobians = cluster.partition(np.matrix([[0.0], [0.0]]))
+        np.testing.assert_array_almost_equal(values, [1.0, 1.0])
+        np.testing.assert_array_almost_equal(jacobians[0], [[0.0], [0.0]])
+        np.testing.assert_array_almost_equal(jacobians[1], [[1.0], [1.0]])
+         
+        values, jacobians = cluster.partition(np.matrix([[1.0], [1.0]]))
+        np.testing.assert_array_almost_equal(values, [1.0, 7.389056], 5)
+        np.testing.assert_array_almost_equal(jacobians[0], [[0.0], [0.0]])
+        np.testing.assert_array_almost_equal(
+            jacobians[1], [[7.389056], [7.389056]])
+

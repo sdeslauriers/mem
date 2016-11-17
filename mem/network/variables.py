@@ -77,6 +77,10 @@ class Cluster(object):
     def states(self):
         return self._states
 
+    def partition(self, lagrange):
+        lagrange = lagrange[self._source_numbers]
+        return zip(*[s.partition(lagrange) for s in self._states])
+
 
 class Connection(object):
     """A variable that represents a connection between clusters"""

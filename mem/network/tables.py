@@ -89,7 +89,8 @@ class Evidence(BaseTable):
     def probabilities(self):
         return self._probabilities
 
-    def update(self, probabilities):
+    def update(self, lagrange):
+        probabilities, _ = self.variables[0].partition(lagrange)
         self.validate_probabilities(probabilities)
         self._probabilities = probabilities
 

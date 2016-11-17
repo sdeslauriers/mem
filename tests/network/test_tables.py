@@ -62,16 +62,11 @@ class Evidence(unittest.TestCase):
         cluster = mem.network.variables.ZeroOneCluster([0, 1])
         table = mem.network.tables.Evidence(cluster, [0.5, 0.5])
 
-        # The probabilities of an evidence table can be updated.
-        table.update([0.2, 0.8])
-        np.testing.assert_array_equal(table.probabilities, [0.2, 0.8])
-
-        # The number of probabilities must match the number of possible
-        # states.
-        self.assertRaises(
-            ValueError,
-            table.update,
-            [1.0])
+        # The probabilities of an evidence table can be updated by 
+        # providing lagrange multipliers.
+        table.update(np.matrix([[0.2], [0.8]]))
+        np.testing.assert_array_equal(
+            table.probabilities, [1.0, np.exp(1.0)])
 
 
 class Marginal(unittest.TestCase):
