@@ -31,6 +31,11 @@ class Table(unittest.TestCase):
             mem.network.tables.ConditionalProbability,
             cluster, [0.5, 0.4, 0.05, 0.05])
 
+        # The probabilities can also be arrays. This is important when
+        # computing derivatives.
+        table = mem.network.tables.ConditionalProbability(
+            cluster, [np.random.randn(3), np.random.randn(3)])
+
 
 class Evidence(unittest.TestCase):
 
@@ -62,7 +67,7 @@ class Evidence(unittest.TestCase):
         cluster = mem.network.variables.ZeroOneCluster([0, 1])
         table = mem.network.tables.Evidence(cluster, [0.5, 0.5])
 
-        # The probabilities of an evidence table can be updated by 
+        # The probabilities of an evidence table can be updated by
         # providing lagrange multipliers.
         table.update(np.matrix([[0.2], [0.8]]))
         np.testing.assert_array_equal(
@@ -123,6 +128,31 @@ class Marginal(unittest.TestCase):
             marginal_left.probabilities,
             marginal_right.probabilities)
 
+    def test_init_array(self):
+        """Test using arrays as probabilities"""
+
+        cluster_1 = mem.network.variables.ZeroOneCluster([0, 1])
+        cluster_2 = mem.network.variables.ZeroOneCluster([0, 1])
+
+        values = [
+            np.array([1.0, 0.0]),
+            np.array([0.0, 1.0]),
+            np.array([1.0, 1.0]),
+            np.array([-1.0, 1.0])
+        ]
+        table = mem.network.tables.ConditionalProbability(
+            [cluster_1, cluster_2], values)
+
+        marginal = mem.network.tables.Marginal(table, cluster_1)
+        np.testing.assert_array_almost_equal(
+            marginal.probabilities,
+            [np.array([2, 1]), np.array([-1, 2])])
+
+        marginal = mem.network.tables.Marginal(table, cluster_2)
+        np.testing.assert_array_almost_equal(
+            marginal.probabilities,
+            [np.array([1, 1]), np.array([0, 2])])
+
 
 class Product(unittest.TestCase):
 
@@ -143,3 +173,30 @@ class Product(unittest.TestCase):
         np.testing.assert_array_almost_equal(
             result.probabilities,
             [0.04, 0.03, 0.04, 0.02, 0.12, 0.09, 0.08, 0.04])
+
+    def test_init_array(self):
+        """Test using arrays as probabilities"""
+
+        cluster_a = mem.network.variables.ZeroOneCluster([0, 1])
+        cluster_b = mem.network.variables.ZeroOneCluster([0, 1])
+        values_1 = [
+            np.array([1, 0], dtype=float),
+            np.array([0, 1], dtype=float),
+        ]
+        table_1 = mem.network.tables.ConditionalProbability(
+            [cluster_a], values_1)
+        table_2 = mem.network.tables.ConditionalProbability(
+            [cluster_a, cluster_b], [0.4, 0.3, 0.2, 0.1])
+
+        variables = [cluster_a, cluster_b]
+        result = mem.network.tables.Product(variables, table_1, table_2)
+
+        values = [
+            np.array([0.4, 0.0]),
+            np.array([0.3, 0.0]),
+            np.array([0.0, 0.2]),
+            np.array([0.0, 0.1]),
+        ]
+        np.testing.assert_array_almost_equal(
+            result.probabilities,
+            values)

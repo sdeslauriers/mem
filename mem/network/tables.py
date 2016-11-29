@@ -115,9 +115,24 @@ class Marginal(ConditionalProbability):
         super().__init__(variables, self._compute_probabilities())
 
     def _compute_probabilities(self):
+
         probabilities = np.array(self._table.probabilities)
-        probabilities.shape = tuple(v.nb_states for v in self._table.variables)
-        return np.sum(probabilities, self._index).ravel()
+        shape = tuple(v.nb_states for v in self._table.variables)
+
+        # The complexity here is that this function should handles arrays
+        # as well as floats.
+        isarray = False
+        if isinstance(probabilities[0], np.ndarray):
+            isarray = True
+            nb = len(probabilities[0])
+            shape = shape + (nb,)
+        probabilities.shape = shape
+        probabilities = np.sum(probabilities, self._index).ravel()
+        if isarray:
+            args = [iter(probabilities)] * nb
+            probabilities = [np.array(z) for z in zip(*args)]
+
+        return probabilities
 
     def update(self):
         self.probabilities = self._compute_probabilities()
@@ -148,9 +163,14 @@ class Product(ConditionalProbability):
 
     def _compute_probabilities(self, nb_states):
 
-        probabilities = np.zeros((nb_states,))
         left = np.array(self._left.probabilities)
         right = np.array(self._right.probabilities)
+
+        # Adapt the shape if one of the probabilities is an array.
+        if left.ndim == 1 and right.ndim != 1:
+            left.shape = left.shape + (1,)
+        if left.ndim != 1 and right.ndim == 1:
+            right.shape = right.shape + (1,)
         return left[self._left_indices] * right[self._right_indices]
 
     def update(self):
